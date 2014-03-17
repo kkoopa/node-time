@@ -2,9 +2,7 @@
 #include <stdint.h>
 #include <time.h>
 
-#include <v8.h>
-#include <node.h>
-#include "nan.h"
+#include <nan.h>
 
 
 using namespace node;
@@ -31,7 +29,7 @@ class Time {
 
   static NAN_METHOD(Time_) {
     NanScope();
-    NanReturnValue(Integer::New(time(NULL)));
+    NanReturnValue(NanNew<Integer>(time(NULL)));
   }
 
   static NAN_METHOD(Tzset) {
@@ -41,22 +39,22 @@ class Time {
     tzset();
 
     // Set up a return object that will hold the results of the timezone change
-    Local<Object> obj = Object::New();
+    Local<Object> obj = NanNew<Object>();
 
     // The 'tzname' char * [] gets put into a JS Array
     int tznameLength = 2;
-    Local<Array> tznameArray = Array::New( tznameLength );
+    Local<Array> tznameArray = NanNew<Array>( tznameLength );
     for (int i=0; i < tznameLength; i++) {
       tznameArray->Set(i, NanSymbol( tzname[i] ));
     }
     obj->Set(NanSymbol("tzname"), tznameArray);
 
     // The 'timezone' long is the "seconds West of UTC"
-    obj->Set(NanSymbol("timezone"), Number::New( timezone ));
+    obj->Set(NanSymbol("timezone"), NanNew<Number>( timezone ));
 
     // The 'daylight' int is obselete actually, but I'll include it here for
     // curiosity's sake. See the "Notes" section of "man tzset"
-    obj->Set(NanSymbol("daylight"), Number::New( daylight ));
+    obj->Set(NanSymbol("daylight"), NanNew<Number>( daylight ));
 
     NanReturnValue(obj);
   }
@@ -69,22 +67,22 @@ class Time {
     struct tm *timeinfo = localtime( &rawtime );
 
     // Create the return "Object"
-    Local<Object> obj = Object::New();
+    Local<Object> obj = NanNew<Object>();
 
     if (timeinfo) {
-      obj->Set(NanSymbol("seconds"), Integer::New(timeinfo->tm_sec) );
-      obj->Set(NanSymbol("minutes"), Integer::New(timeinfo->tm_min) );
-      obj->Set(NanSymbol("hours"), Integer::New(timeinfo->tm_hour) );
-      obj->Set(NanSymbol("dayOfMonth"), Integer::New(timeinfo->tm_mday) );
-      obj->Set(NanSymbol("month"), Integer::New(timeinfo->tm_mon) );
-      obj->Set(NanSymbol("year"), Integer::New(timeinfo->tm_year) );
-      obj->Set(NanSymbol("dayOfWeek"), Integer::New(timeinfo->tm_wday) );
-      obj->Set(NanSymbol("dayOfYear"), Integer::New(timeinfo->tm_yday) );
-      obj->Set(NanSymbol("isDaylightSavings"), Boolean::New(timeinfo->tm_isdst > 0) );
+      obj->Set(NanSymbol("seconds"), NanNew<Integer>(timeinfo->tm_sec) );
+      obj->Set(NanSymbol("minutes"), NanNew<Integer>(timeinfo->tm_min) );
+      obj->Set(NanSymbol("hours"), NanNew<Integer>(timeinfo->tm_hour) );
+      obj->Set(NanSymbol("dayOfMonth"), NanNew<Integer>(timeinfo->tm_mday) );
+      obj->Set(NanSymbol("month"), NanNew<Integer>(timeinfo->tm_mon) );
+      obj->Set(NanSymbol("year"), NanNew<Integer>(timeinfo->tm_year) );
+      obj->Set(NanSymbol("dayOfWeek"), NanNew<Integer>(timeinfo->tm_wday) );
+      obj->Set(NanSymbol("dayOfYear"), NanNew<Integer>(timeinfo->tm_yday) );
+      obj->Set(NanSymbol("isDaylightSavings"), NanNew<Boolean>(timeinfo->tm_isdst > 0) );
 
 #if defined HAVE_TM_GMTOFF
       // Only available with glibc's "tm" struct. Most Linuxes, Mac OS X...
-      obj->Set(NanSymbol("gmtOffset"), Integer::New(timeinfo->tm_gmtoff) );
+      obj->Set(NanSymbol("gmtOffset"), NanNew<Integer>(timeinfo->tm_gmtoff) );
       obj->Set(NanSymbol("timezone"), NanSymbol(timeinfo->tm_zone) );
 
 #elif defined HAVE_TIMEZONE
@@ -99,11 +97,11 @@ class Time {
       } else {
         scd = -timezone;
       }
-      obj->Set(NanSymbol("gmtOffset"), Integer::New(scd));
+      obj->Set(NanSymbol("gmtOffset"), NanNew<Integer>(scd));
       obj->Set(NanSymbol("timezone"), NanSymbol(tzname[timeinfo->tm_isdst]));
 #endif // HAVE_TM_GMTOFF
     } else {
-      obj->Set(NanSymbol("invalid"), True());
+      obj->Set(NanSymbol("invalid"), NanTrue());
     }
 
     NanReturnValue(obj);
@@ -127,7 +125,7 @@ class Time {
     tmstr.tm_isdst = arg->Get(NanSymbol("isDaylightSavings"))->Int32Value();
     // tm_wday and tm_yday are ignored for input, but properly set after 'mktime' is called
 
-    NanReturnValue(Number::New(static_cast<double>(mktime( &tmstr ))));
+    NanReturnValue(NanNew<Number>(static_cast<double>(mktime( &tmstr ))));
   }
 
 };
